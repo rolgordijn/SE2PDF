@@ -18,10 +18,7 @@ root = tkinter.Tk()
 root.title('export to pdf')
 root.geometry("1280x720")
 
-destinationDirectory = ""
-
-
-
+destinationDirectory = " "
 
 conn = sqlite3.connect("files.db")
 c = conn.cursor()
@@ -34,16 +31,16 @@ c.execute("""CREATE TABLE IF NOT EXISTS files (
        )""") 
 
 def fileNameFromPath(file):
-    return os.path.basename(file)
+    return str(os.path.basename(file))
 
 def addFileButtonHandler():
-    filenames = filedialog.askopenfilenames(filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
-    for filename in filenames:
+    global lb
+    paths = filedialog.askopenfilenames(filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    for path in paths:
+        filename = fileNameFromPath(path)
         lb.insert(0, filename)
-        command = "INSERT INTO files VALUES("  + fileNameFromPath(filename)  + destinationDirectory  + fileNameFromPath(filename) + "\")"
-        c.execute(command)
-
-
+        c.execute("insert into files (path, destination, name) values (?, ?, ?)",
+            (path, destinationDirectory, filename))
 def removeFileButtonHandler():
     selected = lb.curselection()
     if(selected):
@@ -64,7 +61,7 @@ def listBoxClickedHandler(Event):
     simpledialog.askstring('enter new name', 'enter new name')
 
 def exportAsPDFButtonHandler():
-    if destinationDirectory == "":
+    if destinationDirectory == " ":
         mb.showwarning(title="Destination is not set", message="Set the destination before you start the export")
         return
     if lb.size() == 0: 
