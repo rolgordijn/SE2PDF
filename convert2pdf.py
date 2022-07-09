@@ -1,23 +1,48 @@
 
 from asyncio.windows_events import NULL
+from mimetypes import init
+from random import random
+
+
 import sqlite3
+from string import ascii_uppercase
+
 
 import tkinter
-from tkinter import filedialog
+from tkinter import filedialog, simpledialog
 from tkinter import messagebox as mb
-from tkinter import simpledialog
+
+import os    
 
 root = tkinter.Tk()
 root.title('export to pdf')
 root.geometry("1280x720")
 
-destinationDirectory = NULL
+destinationDirectory = ""
 
+
+
+
+conn = sqlite3.connect("files.db")
+c = conn.cursor()
+
+
+c.execute("""CREATE TABLE IF NOT EXISTS files (
+    path text,
+    destination text,
+    name text
+       )""") 
+
+def fileNameFromPath(file):
+    return os.path.basename(file)
 
 def addFileButtonHandler():
     filenames = filedialog.askopenfilenames(filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
     for filename in filenames:
         lb.insert(0, filename)
+        command = "INSERT INTO files VALUES("  + fileNameFromPath(filename)  + destinationDirectory  + fileNameFromPath(filename) + "\")"
+        c.execute(command)
+
 
 def removeFileButtonHandler():
     selected = lb.curselection()
@@ -36,11 +61,10 @@ def listBoxClickedHandler(Event):
     if(len(selected)>1):
         mb.showwarning(title="multiple selection not allowed", message="Select only one file")
         return
-    tkinter.simpledialog.askstring('enter new name', 'enter new name')
+    simpledialog.askstring('enter new name', 'enter new name')
 
 def exportAsPDFButtonHandler():
-    if destinationDirectory == NULL:
-        print(destinationDirectory)
+    if destinationDirectory == "":
         mb.showwarning(title="Destination is not set", message="Set the destination before you start the export")
         return
     if lb.size() == 0: 
@@ -73,23 +97,6 @@ destinationLabel.grid(column=1, row=5)
 
 
 
-# conn = sqlite3.connect("files.db")
-
-# = conn.cursor()
-
-
-#c.execute("""CREATE TABLE IF NOT EXISTS files (
-#    path text,
-#    destination text,
-#    name text
-#    )""") """
-
-
-
-
-
 root.mainloop()
-
-# conn.commit()
-
-#conn.close() """
+conn.commit()
+conn.close() 
