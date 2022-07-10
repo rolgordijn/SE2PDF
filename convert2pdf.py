@@ -1,6 +1,7 @@
 
 from asyncio.windows_events import NULL
 from mimetypes import init
+from multiprocessing import Event
 from random import random
 
 
@@ -12,71 +13,81 @@ import tkinter
 from tkinter import Listbox, filedialog, simpledialog
 from tkinter import messagebox as mb
 
-import os    
+import os
+from typing import List    
 
 root = tkinter.Tk()
 root.title('export to pdf')
-root.geometry("1280x720")
+#root.geometry("1280x720")
 
 destinationDirectory = " "
 
-conn = sqlite3.connect("files.db")
-c = conn.cursor()
+conn = None
+c = None
 
+def initListBox() -> None:
+    c.execute("SELECT * FROM files")
+    addFilesToListBox([i[0] for i in c.fetchall()])
+    conn.commit()
 
-c.execute("""CREATE TABLE IF NOT EXISTS files (
-    path text,
-    destination text,
-    name text
-       )""") 
+def initDataBase(db:str) -> None: 
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
 
-def fileNameFromPath(file):
+    c.execute("""CREATE TABLE IF NOT EXISTS files (
+        path text,
+        filename text,
+        destination text,
+        name text
+        )""") 
+    conn.commit()
+
+def init(db:str)->None:
+    initDataBase(db)
+    initListBox()
+
+def fileNameFromPath(file:str) -> str:
     return str(os.path.basename(file))
 
-def addFileToListBox(paths):
+def addFilesToListBox(paths: List) -> None:
     global lb
     for path in paths:
-        if doesPathExist(path): 
-            mb.showwarning(title="duplicate file", message="file added to the queue")
-            continue
-        else: 
-            filename = path
-        #filename = fileNameFromPath(path)
-            lb.insert(0, filename)
+         filename = fileNameFromPath(path)
+         lb.insert(0, filename)
 
 
-def doesPathExist(path):
+def doesPathExist(path:str)-> int:
     c.execute("SELECT COUNT(1) FROM files WHERE path= ?", (path,))
     return (c.fetchone()[0])
+    conn.commit()
     
 
-
-
-def addFileButtonHandler():
+def addFileButtonHandler() -> None:
     global lb
     paths = filedialog.askopenfilenames(filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
     for path in paths:
-        #filename = fileNameFromPath(path)
         if doesPathExist(path): 
             mb.showwarning(title="duplicate file", message="file added to the queue")
             continue
         else:
-            filename = path
+            filename = fileNameFromPath(path)
             lb.insert(0, filename)
-            c.execute("insert into files (path, destination, name) values (?, ?, ?)",
-                (path, destinationDirectory, filename))
+            c.execute("insert into files (path, filename, destination, name) values (?, ?, ?, ?)",
+                (path, filename, destinationDirectory, filename))
+            conn.commit()
 
 
 def removeFileButtonHandler():
     selected = lb.curselection()
     if(selected):
         line = selected[0]
-        path = lb.get(line)
-        c.execute("DELETE FROM files WHERE path= ?", (path,))
+        filename = lb.get(line)
+        c.execute("DELETE FROM files WHERE filename= ?", (filename,))
         lb.delete(line)
         removeFileButtonHandler()
+        conn.commit()
         
-def setPathButtonHandler():
+def setPathButtonHandler() -> None:
     global destinationDirectory
     destinationDirectory = filedialog.askdirectory()
     textForLabel = "Destination:   " + destinationDirectory
@@ -88,6 +99,7 @@ def listBoxClickedHandler(Event):
         mb.showwarning(title="multiple selection not allowed", message="Select only one file")
         return
     simpledialog.askstring('enter new name', 'enter new name')
+    mb.showwarning(title="Not implemented yet", message="I don't know how to change the filename!")
 
 def exportAsPDFButtonHandler():
     if destinationDirectory == " ":
@@ -99,7 +111,7 @@ def exportAsPDFButtonHandler():
     else:
         mb.showwarning(title="Nothing implemented yet", message="I don't know how to do that!")
 
-lb = tkinter.Listbox(root, width=150, height=25, selectmode='extended' )
+lb = tkinter.Listbox(root, width=40, height=25, selectmode='extended' )
 lb.grid(row=1, column=1, rowspan=4)
 lb.bind('<Double-1>', listBoxClickedHandler)
 
@@ -118,9 +130,10 @@ exportAsPDFButton.grid(row=4,column=2)
 destinationLabel = tkinter.Label(root, text="Destination: not set")
 destinationLabel.grid(column=1, row=5)
 
+init("files.db")
 
-c.execute("SELECT * FROM files")
-addFileToListBox([i[0] for i in c.fetchall()])
+
+
 
 
 
