@@ -71,14 +71,16 @@ def addFileButtonHandler() -> None:
                 (path, filename, destinationDirectory, filename))
             conn.commit()
 
+def getFileNameFromListBox(line) -> str:
+    return lb.get(line)
 
-def removeFileButtonHandler():
+
+def removeFileButtonHandler() -> None:
     selected = lb.curselection()
     if(selected):
-        line = selected[0]
-        filename = lb.get(line)
+        filename = getFileNameFromListBox(selected[0])
         c.execute("DELETE FROM files WHERE filename= ?", (filename,))
-        lb.delete(line)
+        lb.delete(selected[0])
         removeFileButtonHandler()
         conn.commit()
         
@@ -87,18 +89,22 @@ def setPathButtonHandler() -> None:
     destinationDirectory = filedialog.askdirectory()
     c.execute("UPDATE files SET destination = ?", (destinationDirectory,))
     conn.commit()
-
-
     textForLabel = "Destination:   " + destinationDirectory
     destinationLabel.configure(text=textForLabel)
 
 def listBoxClickedHandler(Event):
-    selected = lb.curselection() 
+    global c, conn
+    selected = lb.curselection()
     if(len(selected)>1):
         mb.showwarning(title="multiple selection not allowed", message="Select only one file")
         return
-    simpledialog.askstring('enter new name', 'enter new name')
-    mb.showwarning(title="Not implemented yet", message="I don't know how to change the filename!")
+    index = selected[0]
+    selectedFile = getFileNameFromListBox(index)
+    newFileName = simpledialog.askstring('enter new name', 'enter new name')
+    c.execute("UPDATE files SET name = ? WHERE filename = ?", (newFileName,selectedFile,))
+    conn.commit()
+    lb.delete(index)
+    lb.insert(index, f"{selectedFile} % {newFileName}")
 
 def exportAsPDFButtonHandler():
     if destinationDirectory == " ":
