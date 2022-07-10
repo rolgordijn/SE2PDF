@@ -19,11 +19,13 @@ conn = None
 c = None
 
 def initListBox() -> None:
+    global c, conn
     c.execute("SELECT * FROM files")
     addFilesToListBox([i[0] for i in c.fetchall()])
     conn.commit()
 
-def initDataBase(db:str) -> None: 
+def initDataBase(db:str) -> None:
+    global c, conn
     conn = sqlite3.connect(db)
     c = conn.cursor()
 
@@ -83,6 +85,10 @@ def removeFileButtonHandler():
 def setPathButtonHandler() -> None:
     global destinationDirectory
     destinationDirectory = filedialog.askdirectory()
+    c.execute("UPDATE files SET destination = ?", (destinationDirectory,))
+    conn.commit()
+
+
     textForLabel = "Destination:   " + destinationDirectory
     destinationLabel.configure(text=textForLabel)
 
