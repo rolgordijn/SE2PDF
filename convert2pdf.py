@@ -9,7 +9,7 @@ from string import ascii_uppercase
 
 
 import tkinter
-from tkinter import filedialog, simpledialog
+from tkinter import Listbox, filedialog, simpledialog
 from tkinter import messagebox as mb
 
 import os    
@@ -55,7 +55,13 @@ def addFileButtonHandler():
 def removeFileButtonHandler():
     selected = lb.curselection()
     if(selected):
-        lb.delete(selected[0])
+
+        line = selected[0]
+        path = lb.get(line)
+        print(line)
+        print(path)
+        c.execute("DELETE FROM files WHERE path= ?", (path,))
+        lb.delete(line)
         removeFileButtonHandler()
         
 def setPathButtonHandler():
