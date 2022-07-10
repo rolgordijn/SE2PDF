@@ -1,12 +1,5 @@
 
-from asyncio.windows_events import NULL
-from mimetypes import init
-from multiprocessing import Event
-from random import random
-
-
 import sqlite3
-from string import ascii_uppercase
 
 
 import tkinter
@@ -42,7 +35,7 @@ def initDataBase(db:str) -> None:
         )""") 
     conn.commit()
 
-def init(db:str)->None:
+def initApp(db:str)->None:
     initDataBase(db)
     initListBox()
 
@@ -130,7 +123,7 @@ exportAsPDFButton.grid(row=4,column=2)
 destinationLabel = tkinter.Label(root, text="Destination: not set")
 destinationLabel.grid(column=1, row=5)
 
-init("files.db")
+initApp("files.db")
 
 
 
