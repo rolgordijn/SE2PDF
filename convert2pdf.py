@@ -36,9 +36,20 @@ def fileNameFromPath(file):
 def addFileToListBox(paths):
     global lb
     for path in paths:
-        filename = path
+        if doesPathExist(path): 
+            mb.showwarning(title="duplicate file", message="file added to the queue")
+            continue
+        else: 
+            filename = path
         #filename = fileNameFromPath(path)
-        lb.insert(0, filename)
+            lb.insert(0, filename)
+
+
+def doesPathExist(path):
+    c.execute("SELECT COUNT(1) FROM files WHERE path= ?", (path,))
+    return (c.fetchone()[0])
+    
+
 
 
 def addFileButtonHandler():
@@ -46,20 +57,21 @@ def addFileButtonHandler():
     paths = filedialog.askopenfilenames(filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
     for path in paths:
         #filename = fileNameFromPath(path)
-        filenname = path
-        lb.insert(0, filename)
-        c.execute("insert into files (path, destination, name) values (?, ?, ?)",
-            (path, destinationDirectory, filename))
+        if doesPathExist(path): 
+            mb.showwarning(title="duplicate file", message="file added to the queue")
+            continue
+        else:
+            filename = path
+            lb.insert(0, filename)
+            c.execute("insert into files (path, destination, name) values (?, ?, ?)",
+                (path, destinationDirectory, filename))
 
 
 def removeFileButtonHandler():
     selected = lb.curselection()
     if(selected):
-
         line = selected[0]
         path = lb.get(line)
-        print(line)
-        print(path)
         c.execute("DELETE FROM files WHERE path= ?", (path,))
         lb.delete(line)
         removeFileButtonHandler()
