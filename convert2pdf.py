@@ -45,10 +45,16 @@ def fileNameFromPath(file:str) -> str:
     return str(os.path.basename(file))
 
 def addFilesToListBox(paths: List) -> None:
-    global lb
+    global lb, conn, c
     for path in paths:
-         filename = fileNameFromPath(path)
-         lb.insert(0, filename)
+        c.execute("SELECT * FROM files WHERE path= ?", (path,))
+        conn.commit()
+        result = c.fetchone()
+        if(result[1] != result[3]): 
+             lb.insert(0, f"{result[1]} % {result[3]}")
+        else:
+            filename = fileNameFromPath(path)
+            lb.insert(0, filename)
 
 
 def doesPathExist(path:str)-> int:
@@ -99,7 +105,7 @@ def listBoxClickedHandler(Event):
         mb.showwarning(title="multiple selection not allowed", message="Select only one file")
         return
     index = selected[0]
-    selectedFile = getFileNameFromListBox(index)
+    selectedFile = getFileNameFromListBox(index).split('%')[0]
     newFileName = simpledialog.askstring('enter new name', 'enter new name')
     c.execute("UPDATE files SET name = ? WHERE filename = ?", (newFileName,selectedFile,))
     conn.commit()
