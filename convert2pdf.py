@@ -33,14 +33,25 @@ c.execute("""CREATE TABLE IF NOT EXISTS files (
 def fileNameFromPath(file):
     return str(os.path.basename(file))
 
+def addFileToListBox(paths):
+    global lb
+    for path in paths:
+        filename = path
+        #filename = fileNameFromPath(path)
+        lb.insert(0, filename)
+
+
 def addFileButtonHandler():
     global lb
     paths = filedialog.askopenfilenames(filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
     for path in paths:
-        filename = fileNameFromPath(path)
+        #filename = fileNameFromPath(path)
+        filenname = path
         lb.insert(0, filename)
         c.execute("insert into files (path, destination, name) values (?, ?, ?)",
             (path, destinationDirectory, filename))
+
+
 def removeFileButtonHandler():
     selected = lb.curselection()
     if(selected):
@@ -88,6 +99,10 @@ exportAsPDFButton.grid(row=4,column=2)
 
 destinationLabel = tkinter.Label(root, text="Destination: not set")
 destinationLabel.grid(column=1, row=5)
+
+
+c.execute("SELECT * FROM files")
+addFileToListBox([i[0] for i in c.fetchall()])
 
 
 
