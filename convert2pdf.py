@@ -1,3 +1,4 @@
+from pickle import NONE
 import sqlite3
 
 import tkinter
@@ -129,6 +130,7 @@ def listBoxClickedHandler(Event)-> None:
     lb.insert(index, f"{selectedFile} % {newFileName}")
 
 def exportAsPDFButtonHandler():
+    global c
     if destinationDirectory == " ":
         mb.showwarning(title="Destination is not set", message="Set the destination before you start the export")
         return
@@ -137,6 +139,12 @@ def exportAsPDFButtonHandler():
         return
     else:
         mb.showwarning(title="Nothing implemented yet", message="I don't know how to do that!")
+        c.execute("SELECT * FROM files")
+        conn.commit()
+        while row := c.fetchone():
+            print(row)
+
+
 
 lb = tkinter.Listbox(root, width=40, height=25, selectmode='extended' )
 lb.grid(row=1, column=1, rowspan=5)
