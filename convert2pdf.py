@@ -1,6 +1,4 @@
-
 import sqlite3
-
 
 import tkinter
 from tkinter import Listbox, filedialog, simpledialog
@@ -59,8 +57,8 @@ def addFilesToListBox(paths: List) -> None:
 
 def doesPathExist(path:str)-> int:
     c.execute("SELECT COUNT(1) FROM files WHERE path= ?", (path,))
-    return (c.fetchone()[0])
     conn.commit()
+    return (c.fetchone()[0])
     
 
 def addFileButtonHandler() -> None:
@@ -92,6 +90,7 @@ def removeFileButtonHandler() -> None:
         lb.delete(selected[0])
         removeFileButtonHandler()
         conn.commit()
+        lb.selection_set(selected[0])
         
 def setPathButtonHandler() -> None:
     exportAsPDFButton['state'] = 'normal' 
@@ -105,7 +104,7 @@ def setPathButtonHandler() -> None:
 
 
 
-def listBoxClickedHandler(Event):
+def listBoxClickedHandler(Event)-> None:
     global c, conn
     selected = lb.curselection()
     if not len(selected): return
@@ -162,14 +161,6 @@ destinationLabel = tkinter.Label(root, text="Destination: not set")
 destinationLabel.grid(column=1, row=6, columnspan=2)
 
 initApp("files.db")
-
-
-
-
-
-
-
-
 
 root.mainloop()
 conn.commit()
