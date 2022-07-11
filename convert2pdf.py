@@ -11,7 +11,6 @@ from typing import List
 
 root = tkinter.Tk()
 root.title('export to pdf')
-#root.geometry("1280x720")
 
 destinationDirectory = " "
 
@@ -45,7 +44,8 @@ def fileNameFromPath(file:str) -> str:
     return str(os.path.basename(file))
 
 def addFilesToListBox(paths: List) -> None:
-    global lb, conn, c
+    global lb, conn, c, exportAsPDFButton
+    
     for path in paths:
         c.execute("SELECT * FROM files WHERE path= ?", (path,))
         conn.commit()
@@ -78,7 +78,10 @@ def addFileButtonHandler() -> None:
             conn.commit()
 
 def getFileNameFromListBox(line) -> str:
-    return lb.get(line)
+    name =  lb.get(line)
+    splitted = name.split('%') 
+    name = splitted[0].strip()
+    return name
 
 
 def removeFileButtonHandler() -> None:
@@ -91,6 +94,7 @@ def removeFileButtonHandler() -> None:
         conn.commit()
         
 def setPathButtonHandler() -> None:
+    exportAsPDFButton['state'] = 'normal' 
     global destinationDirectory
     destinationDirectory = filedialog.askdirectory()
     c.execute("UPDATE files SET destination = ?", (destinationDirectory,))
@@ -98,15 +102,28 @@ def setPathButtonHandler() -> None:
     textForLabel = "Destination:   " + destinationDirectory
     destinationLabel.configure(text=textForLabel)
 
+
+
+
 def listBoxClickedHandler(Event):
     global c, conn
     selected = lb.curselection()
+    if not len(selected): return
     if(len(selected)>1):
         mb.showwarning(title="multiple selection not allowed", message="Select only one file")
         return
     index = selected[0]
     selectedFile = getFileNameFromListBox(index).split('%')[0]
     newFileName = simpledialog.askstring('enter new name', 'enter new name')
+
+    if newFileName is None:
+        mb.showwarning(title='No input', message='no input detected, try again')
+        return
+
+    if '.' not in newFileName:
+        mb.showwarning(title="File extension", message="Probably no File Extension. Filename not updated")
+        return
+
     c.execute("UPDATE files SET name = ? WHERE filename = ?", (newFileName,selectedFile,))
     conn.commit()
     lb.delete(index)
@@ -123,7 +140,7 @@ def exportAsPDFButtonHandler():
         mb.showwarning(title="Nothing implemented yet", message="I don't know how to do that!")
 
 lb = tkinter.Listbox(root, width=40, height=25, selectmode='extended' )
-lb.grid(row=1, column=1, rowspan=4)
+lb.grid(row=1, column=1, rowspan=5)
 lb.bind('<Double-1>', listBoxClickedHandler)
 
 addFileButton = tkinter.Button(root, width=18, text ='Add file',command=addFileButtonHandler)
@@ -132,14 +149,17 @@ addFileButton.grid(row=1,column=2)
 removeFileButton= tkinter.Button(root, width=18, text ='Remove file',command=removeFileButtonHandler)
 removeFileButton.grid(row=2,column=2)
 
-setPathButton= tkinter.Button(root,  width=18, text ='Set Destination',command=setPathButtonHandler)
-setPathButton.grid(row=3,column=2)
+setNameButton= tkinter.Button(root,  width=18, text ='Set Destination (all files)',command=setPathButtonHandler)
+setNameButton.grid(row=3,column=2)
 
-exportAsPDFButton = tkinter.Button(root, width=18, text='Export Files as PDF', command=exportAsPDFButtonHandler)
-exportAsPDFButton.grid(row=4,column=2)
+setPathButton= tkinter.Button(root,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(None))
+setPathButton.grid(row=4,column=2)
+
+exportAsPDFButton = tkinter.Button(root, width=18, text='Export Files as PDF', state='disabled' ,command=exportAsPDFButtonHandler)
+exportAsPDFButton.grid(row=5,column=2)
 
 destinationLabel = tkinter.Label(root, text="Destination: not set")
-destinationLabel.grid(column=1, row=5)
+destinationLabel.grid(column=1, row=6, columnspan=2)
 
 initApp("files.db")
 
