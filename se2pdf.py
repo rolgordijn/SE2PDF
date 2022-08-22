@@ -1,5 +1,4 @@
-from operator import contains
-import sqlite3
+from database import Database
 
 import subprocess
 
@@ -8,8 +7,6 @@ from tkinter import Frame, Listbox, filedialog, simpledialog
 from tkinter import messagebox as mb
 
 import os
-
-
 import time
 
 from threading import Thread
@@ -17,35 +14,6 @@ from typing import List
 
 root = tkinter.Tk()
 
-class Database: 
-    def __init__(self, path):
-        self.path = path
-
-    def init(self):
-        self.conn = sqlite3.connect(self.path)
-        self.c = self.conn.cursor()
-
-        self.c.execute("""CREATE TABLE IF NOT EXISTS files (
-            path text,
-            filename text,
-            destination text,
-            name text
-            )""") 
-        self.conn.commit()
-    
-    def executeQuery(self, query):
-        print(query)
-        self.c.execute(query)
-        self.conn.commit()
-    
-    def getResults(self, amount) -> List: 
-        return self.c.fetchmany(amount)
-    
-    def getAllResults(self) -> List:
-        return self.c.fetchall()
-    
-    def getOneResult(self)-> List:
-        return self.c.fetchone()[0]
     
 
 """init routines"""
@@ -217,41 +185,39 @@ if __name__ == '__main__':
 
     lb = Listbox(east, width=100, height=25, selectmode='extended' )
     lb.pack()
-    #lb.grid(row=1, column=1, rowspan=6)
+ 
     lb.bind('<Double-1>', listBoxClickedHandler(db))
 
     addFileButton = tkinter.Button(west, width=18, text ='Add file',command= lambda: addFileButtonHandler(db))
     addFileButton.pack()
-    
-    #addFileButton.grid(row=1,column=2) 
+
 
     removeFileButton= tkinter.Button(west, width=18, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb))
     removeFileButton.pack()
-    #removeFileButton.grid(row=2,column=2)
+  
 
     setPathButton= tkinter.Button(west,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(db))
     setPathButton.pack()
-   # setPathButton.grid(row=3,column=2)
+   
    
     setNameButton= tkinter.Button(west,  width=18, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
     setNameButton.pack()
-    #setNameButton.grid(row=4,column=2)
+
 
     exportAsPDFButton = tkinter.Button(west, width=18, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
     exportAsPDFButton.pack()
-    # exportAsPDFButton.grid(row=5,column=2)
+  
 
     openDestinationButton = tkinter.Button(west, width=18, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(destinationDirectory))
     openDestinationButton.pack()
-    #openDestinationButton.grid(row=6,column=2)
+
 
     destinationLabel = tkinter.Label(south, text="Destination: not set")
     destinationLabel.pack()
-    #destinationLabel.grid(column=1, row=7, columnspan=2)
+
 
     statusLabel = tkinter.Label(south, text="")
     statusLabel.pack()
-    #statusLabel.grid(column=1, row=8, columnspan=2)
 
     destinationDirectory = " "
 
