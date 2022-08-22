@@ -207,33 +207,51 @@ if __name__ == '__main__':
     root.title('export to pdf')
 
 
-    lb = Listbox(root, width=100, height=25, selectmode='extended' )
-    lb.grid(row=1, column=1, rowspan=6)
+    east = Frame(root)
+    east.grid(row=1,column=1)
+    west = Frame(root)
+    west.grid(row=1,column=2)
+
+    south= Frame(root)
+    south.grid(row=2,column=1, columnspan=2)
+
+    lb = Listbox(east, width=100, height=25, selectmode='extended' )
+    lb.pack()
+    #lb.grid(row=1, column=1, rowspan=6)
     lb.bind('<Double-1>', listBoxClickedHandler(db))
 
-    addFileButton = tkinter.Button(root, width=18, text ='Add file',command= lambda: addFileButtonHandler(db))
-    addFileButton.grid(row=1,column=2) 
+    addFileButton = tkinter.Button(west, width=18, text ='Add file',command= lambda: addFileButtonHandler(db))
+    addFileButton.pack()
+    
+    #addFileButton.grid(row=1,column=2) 
 
-    removeFileButton= tkinter.Button(root, width=18, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb))
-    removeFileButton.grid(row=2,column=2)
+    removeFileButton= tkinter.Button(west, width=18, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb))
+    removeFileButton.pack()
+    #removeFileButton.grid(row=2,column=2)
 
-    setPathButton= tkinter.Button(root,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(db))
-    setPathButton.grid(row=3,column=2)
+    setPathButton= tkinter.Button(west,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(db))
+    setPathButton.pack()
+   # setPathButton.grid(row=3,column=2)
    
-    setNameButton= tkinter.Button(root,  width=18, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
-    setNameButton.grid(row=4,column=2)
+    setNameButton= tkinter.Button(west,  width=18, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
+    setNameButton.pack()
+    #setNameButton.grid(row=4,column=2)
 
-    exportAsPDFButton = tkinter.Button(root, width=18, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
-    exportAsPDFButton.grid(row=5,column=2)
+    exportAsPDFButton = tkinter.Button(west, width=18, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
+    exportAsPDFButton.pack()
+    # exportAsPDFButton.grid(row=5,column=2)
 
-    openDestinationButton = tkinter.Button(root, width=18, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(destinationDirectory))
-    openDestinationButton.grid(row=6,column=2)
+    openDestinationButton = tkinter.Button(west, width=18, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(destinationDirectory))
+    openDestinationButton.pack()
+    #openDestinationButton.grid(row=6,column=2)
 
-    destinationLabel = tkinter.Label(root, text="Destination: not set")
-    destinationLabel.grid(column=1, row=7, columnspan=2)
+    destinationLabel = tkinter.Label(south, text="Destination: not set")
+    destinationLabel.pack()
+    #destinationLabel.grid(column=1, row=7, columnspan=2)
 
-    statusLabel = tkinter.Label(root, text="")
-    statusLabel.grid(column=1, row=8, columnspan=2)
+    statusLabel = tkinter.Label(south, text="")
+    statusLabel.pack()
+    #statusLabel.grid(column=1, row=8, columnspan=2)
 
     destinationDirectory = " "
 
