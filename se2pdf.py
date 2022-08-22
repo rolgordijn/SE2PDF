@@ -1,3 +1,4 @@
+from tkinter import ttk
 from database import Database
 
 import subprocess
@@ -188,35 +189,36 @@ if __name__ == '__main__':
  
     lb.bind('<Double-1>', listBoxClickedHandler(db))
 
-    addFileButton = tkinter.Button(west, width=18, text ='Add file',command= lambda: addFileButtonHandler(db))
+    ttk
+    addFileButton = ttk.Button(west, width=18, text ='Add file',command= lambda: addFileButtonHandler(db))
     addFileButton.pack()
 
 
-    removeFileButton= tkinter.Button(west, width=18, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb))
+    removeFileButton= ttk.Button(west, width=18, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb))
     removeFileButton.pack()
   
 
-    setPathButton= tkinter.Button(west,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(db))
+    setPathButton= ttk.Button(west,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(db))
     setPathButton.pack()
    
    
-    setNameButton= tkinter.Button(west,  width=18, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
+    setNameButton= ttk.Button(west,  width=18, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
     setNameButton.pack()
 
 
-    exportAsPDFButton = tkinter.Button(west, width=18, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
+    exportAsPDFButton = ttk.Button(west, width=18, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
     exportAsPDFButton.pack()
   
 
-    openDestinationButton = tkinter.Button(west, width=18, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(destinationDirectory))
+    openDestinationButton = ttk.Button(west, width=18, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(destinationDirectory))
     openDestinationButton.pack()
 
 
-    destinationLabel = tkinter.Label(south, text="Destination: not set")
+    destinationLabel = ttk.Label(south, text="Destination: not set")
     destinationLabel.pack()
 
 
-    statusLabel = tkinter.Label(south, text="")
+    statusLabel = ttk.Label(south, text="")
     statusLabel.pack()
 
     destinationDirectory = " "
