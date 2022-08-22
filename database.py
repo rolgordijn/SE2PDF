@@ -16,6 +16,9 @@ class Database:
             name text
             )""") 
         self.conn.commit()
+
+    def updateFileName(self, newFileName: str, selectedFile: str):
+        self.executeQuery(f"UPDATE files SET name = '{newFileName}' WHERE filename = '{selectedFile}'")
     
     def executeQuery(self, query):
         print(query)

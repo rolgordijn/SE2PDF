@@ -15,6 +15,16 @@ from typing import List
 
 root = tkinter.Tk()
 
+
+class App:
+    def __init__(self, path) -> None:
+        self.db = Database(path)
+        self.destinationDirectory = ""
+        self.gui_items = []
+
+    
+
+   
     
 
 """init routines"""
@@ -26,6 +36,9 @@ fills the listbox with the drawings"""
 def initListBox(db: Database) -> None:
         db.executeQuery("SELECT * FROM files")
         results = db.getAllResults()
+        if(results):
+             removeFileButton['state']='normal'
+             setPathButton['state'] = 'normal'
         for row in results: 
             addFileToListBox(0, row[1], row[3])
 
@@ -45,7 +58,7 @@ def getFileNameFromListBox(lb: Listbox, line: int) -> str:
 
 def doesPathExist(db: Database, path:str)-> int:
     c = db.executeQuery(f"SELECT COUNT(1) FROM files WHERE path= '{path}'")
-    ret = db.getOneResult()
+    return db.getOneResult()
 
 
 def doesNewFileNameExist(db: Database, newFileName:str)->int:
@@ -54,10 +67,12 @@ def doesNewFileNameExist(db: Database, newFileName:str)->int:
 
 def changeFileExtensionToPDF(filename: str) -> str:
     return  f'{filename.split(".")[0]}.pdf' 
+
+
+def getFilesToAdd()->List:
+   return filedialog.askopenfilenames(initialdir="C://LDM_WORK" , filetypes = (("Solid Edge 2D files","*.dft"),("all files","*.*")))
     
-def addFileButtonHandler(db: Database) -> None:
-    global lb
-    paths = filedialog.askopenfilenames(initialdir="C://LDM_WORK" , filetypes = (("Solid Edge 2D files","*.dft"),("all files","*.*")))
+def addFileButtonHandler(lb: Listbox, db: Database, paths: List, app: App) -> None:
     for path in paths:
         print(f'add file: path is {path}')
         if doesPathExist(db, path): 
@@ -71,7 +86,9 @@ def addFileButtonHandler(db: Database) -> None:
                 mb.showwarning(title="duplicate filename", message="file with same name already added to the queue")
 
             addFileToListBox(0, filename, newName)
-            db.executeQuery(f"insert into files (path, filename, destination, name) values ('{path}','{filename}','{destinationDirectory}','{newName}')")
+            db.executeQuery(f"insert into files (path, filename, destination, name) values ('{path}','{filename}','{app.destinationDirectory}','{newName}')")
+            removeFileButton['state']='normal'
+            setPathButton['state']='normal'
 
 
 def removeFileButtonHandler(db: Database, lb: Listbox) -> None:
@@ -82,24 +99,23 @@ def removeFileButtonHandler(db: Database, lb: Listbox) -> None:
         lb.delete(selected[0])
         removeFileButtonHandler(db,lb)
         lb.selection_set(selected[0])
-            
-def setPathButtonHandler(db: Database) -> None:
-    global destinationDirectory
-    destinationDirectory = filedialog.askdirectory()
-    db.executeQuery(f"UPDATE files SET destination = '{destinationDirectory}'")
+    if(lb.size() == 0):
+        removeFileButton['state']='disabled'
+        setPathButton['state']='disabled'
 
-    if " " in destinationDirectory:
+            
+def setPathButtonHandler(db: Database, app: App) -> None:
+    app.destinationDirectory = filedialog.askdirectory()
+    db.executeQuery(f"UPDATE files SET destination = '{app.destinationDirectory}'")
+
+    if " " in  app.destinationDirectory:
         mb.showwarning(title="space not allowed", message="Export directory should not contain spaces")
         return 
     
-    textForLabel = "Destination:   " + destinationDirectory
+    textForLabel = "Destination:   " + app.destinationDirectory
     destinationLabel.configure(text=textForLabel)
     exportAsPDFButton['state'] = 'normal' 
     openDestinationButton['state'] = 'normal'
-
-
-def updateFileName(db: Database, newFileName: str, selectedFile: str):
-    db.executeQuery(f"UPDATE files SET name = '{newFileName}' WHERE filename = '{selectedFile}'")
     
 
 def changeListBoxItem(lb: Listbox, index: int, selectedFile:str, newFileName: str):
@@ -107,8 +123,7 @@ def changeListBoxItem(lb: Listbox, index: int, selectedFile:str, newFileName: st
     addFileToListBox(index, selectedFile, newFileName)
 
 
-def listBoxClickedHandler(db)-> None:
-    global c, conn
+def listBoxClickedHandler(db,lb)-> None:
     selected = lb.curselection()
     if not len(selected): return
     if(len(selected)>1):
@@ -128,7 +143,7 @@ def listBoxClickedHandler(db)-> None:
         mb.showwarning(title="duplicate filename", message="file with same name already added to the queue")
         return
 
-    updateFileName(db, newFileName, selectedFile)
+    db.updateFileName(newFileName, selectedFile)
     changeListBoxItem(lb, index, selectedFile, newFileName)
     
 def getExportCommand(row):
@@ -153,9 +168,6 @@ def exportFiles(commands):
     statusLabel.configure(text = "")
 
 def exportAsPDFButtonHandler(db):
-    if destinationDirectory == " ":
-        mb.showwarning(title="Destination is not set", message="Set the destination before you start the export")
-        return
     if lb.size() == 0: 
         mb.showwarning(title="Nothing to export", message="There's nothing to do")
         return
@@ -169,10 +181,16 @@ def openDestinationButtonHandler(destinationDirectory):
     print(destinationDirectory)
     subprocess.run([FILEBROWSER_PATH, destinationDirectory.replace('/','\\')])
 
+
+
+
 if __name__ == '__main__':
-    db = Database("files.db")
-    db.init()
+    app = App("files.db")
     
+
+    db = app.db
+    db.init()
+
     root.title('export to pdf')
 
 
@@ -187,30 +205,32 @@ if __name__ == '__main__':
     lb = Listbox(east, width=100, height=25, selectmode='extended' )
     lb.pack()
  
-    lb.bind('<Double-1>', listBoxClickedHandler(db))
+    lb.bind('<Double-1>',  lambda e, db, lb: listBoxClickedHandler(db,lb))
 
-    ttk
-    addFileButton = ttk.Button(west, width=18, text ='Add file',command= lambda: addFileButtonHandler(db))
+    BUTTON_WIDTH = 35
+
+
+    addFileButton = ttk.Button(west, width=BUTTON_WIDTH, text ='Add file',command= lambda: addFileButtonHandler(lb,db, getFilesToAdd(), app))
     addFileButton.pack()
 
 
-    removeFileButton= ttk.Button(west, width=18, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb))
+    removeFileButton= ttk.Button(west, width=BUTTON_WIDTH, text ='Remove file',command= lambda: removeFileButtonHandler(db,lb), state='disabled')
     removeFileButton.pack()
   
 
-    setPathButton= ttk.Button(west,  width=18, text ='Set filename',command= lambda: listBoxClickedHandler(db))
+    setPathButton= ttk.Button(west,  width=BUTTON_WIDTH, text ='Set filename',  state='disabled',  command= lambda e, db, lb: listBoxClickedHandler(db,lb))
     setPathButton.pack()
    
    
-    setNameButton= ttk.Button(west,  width=18, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
+    setNameButton= ttk.Button(west,  width=BUTTON_WIDTH, text ='Set Destination (all files)',command= lambda: setPathButtonHandler(db))
     setNameButton.pack()
 
 
-    exportAsPDFButton = ttk.Button(west, width=18, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
+    exportAsPDFButton = ttk.Button(west, width=BUTTON_WIDTH, text='Export Files as PDF', state='disabled' ,command= lambda: exportAsPDFButtonHandler(db))
     exportAsPDFButton.pack()
   
 
-    openDestinationButton = ttk.Button(west, width=18, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(destinationDirectory))
+    openDestinationButton = ttk.Button(west, width=BUTTON_WIDTH, text='Open folder', state='disabled' ,command= lambda: openDestinationButtonHandler(app.destinationDirectory))
     openDestinationButton.pack()
 
 
@@ -221,13 +241,16 @@ if __name__ == '__main__':
     statusLabel = ttk.Label(south, text="")
     statusLabel.pack()
 
-    destinationDirectory = " "
+    
 
    
     initApp(db)
 
     root.mainloop()
     db.conn.close()
+
+
+  
 
 
 
