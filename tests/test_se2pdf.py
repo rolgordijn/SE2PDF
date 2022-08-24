@@ -1,12 +1,7 @@
-from SE2pdf.se2pdf  import *
+from se2pdf import changeFileExtensionToPDF
 
 
-def test_filename_from_path():
+def test_changeFileExtensionToPDF():
+    output = changeFileExtensionToPDF("file with spaces.dft")
     pass
 
-def test_that_fails():
-    assert 1 == 5
-
-def test_change_extension():
-    output = changeFileExtensionToPDF("file.dft")
-    assert output == "file.pdf"
