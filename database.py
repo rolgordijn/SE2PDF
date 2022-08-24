@@ -19,6 +19,15 @@ class Database:
 
     def updateFileName(self, newFileName: str, selectedFile: str):
         self.executeQuery(f"UPDATE files SET name = '{newFileName}' WHERE filename = '{selectedFile}'")
+
+    def doesNewFileNameExist(self, newFileName:str)->int:
+        self.executeQuery(f"SELECT COUNT(1) FROM files WHERE name= '{newFileName}'")
+        return (self.getOneResult())
+    
+    def doesPathExist(self, path:str)-> int:
+        self.executeQuery(f"SELECT COUNT(1) FROM files WHERE path= '{path}'")
+        return self.getOneResult()
+
     
     def executeQuery(self, query):
         print(query)
@@ -33,3 +42,5 @@ class Database:
     
     def getOneResult(self)-> List:
         return self.c.fetchone()[0]
+
+    
