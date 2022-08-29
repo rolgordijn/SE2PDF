@@ -108,7 +108,7 @@ def listBoxClickedHandler(event, db : Database,lb: Listbox)-> None:
         return
     index = selected[0]
     selectedFile = getFileNameFromListBox(lb.get(index))
-    newFileName = simpledialog.askstring(title='enter new name', initialvalue=selectedFile.split('.')[0], prompt="Type the new filename", width="200")
+    newFileName = simpledialog.askstring(title='enter new name', initialvalue=selectedFile.split('.')[0], prompt="Type the new filename")
     
     if newFileName is None:
         mb.showwarning(title='No input', message='no input detected, try again', )
@@ -124,7 +124,7 @@ def listBoxClickedHandler(event, db : Database,lb: Listbox)-> None:
     changeListBoxItem(lb, index, selectedFile, newFileName)
     
 def getExportCommand(row: List):
-    cmd = f'"C:/Program Files/Solid Edge ST9/Program/SolidEdgeTranslationServices.exe" -i="{row[0]}" -o="{row[2]}/{row[3]}" -t=pdf'
+    cmd = f'"C:/Program Files/Solid Edge ST9/Program/SolidEdgeTranslationServices.exe" -i="{row[0]}" -o="{row[2]}/{row[3]}" -t=pdf -v=False'
     cmd = cmd.replace('/','\\')
     print(f"the command is: {cmd}")
     return cmd
@@ -134,16 +134,36 @@ def exportSingleFile(cmd :str):
 
 
 def exportFiles(commands):
+    start = time.time()
+    i = 0; 
     exportQueue = []
+    statusLabelText = ""
     while commands or exportQueue:
         if len(exportQueue)<4 and commands:
             exportQueue.append(exportSingleFile(commands.pop()))
         exportQueue = [eq for eq  in exportQueue if eq.poll() is None] 
-        statusLabelText = f"{len(commands)} files in the export Queue, currently {len(exportQueue)} files being exported"
-        statusLabel.configure(text = statusLabelText)
+        
+        if(len(commands) and len(exportQueue)>1):
+                 statusLabelText = f"{len(commands)} files in the export Queue, currently {len(exportQueue)} files being exported"
+        elif(len(commands) == 0 and len(exportQueue)>1):
+                 statusLabelText = f"Currently {len(exportQueue)} files being exported"
+        else: 
+                  statusLabelText = f"Saving the last file. Please wait a while. It's almost ready!"
+        i+=1
+        n = 20
+        rem = i%n
+        dots = "-"*(rem)
+        dots_trailing ="-"*(n-rem)
+        statusLabelText = f"    {statusLabelText} {dots}//{dots_trailing}"
+        if i>2:
+            statusLabel.configure(text = statusLabelText)
         time.sleep((1))
-    mb.showinfo(title="files exporterd", message="all files where exported to the selected folder")  
     statusLabel.configure(text = "")
+    stop = time.time()
+    elapsed = stop - start
+    elapsed_as_string = time.strftime('%M:%S', time.gmtime(elapsed))
+    mb.showinfo(title="files exporterd", message=f"all files where exported to the selected folder in {elapsed_as_string} ")  
+    
 
 def exportAsPDFButtonHandler(db :Database):
     if lb.size() == 0: 
